@@ -3,10 +3,13 @@ import path from "path";
 import fs from "fs";
 import Product from "../models/productModel";
 import User from "../models/userModel";
-require("dotenv").config();
+import dotenv from "dotenv";
+import twilio from "twilio";
+
+dotenv.config();
+
 const accountSid = process.env.ACCOUNT_SID;
 const authToken = process.env.AUTH_TOKEN;
-import twilio from "twilio";
 
 // -------------------------------- User Authentication --------------------------------
 
@@ -100,8 +103,9 @@ export const resetPassword = async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
     const isMatch = await user.comparePassword(req.body.oldPassword);
-    if (!isMatch)
+    if (!isMatch) {
       return res.status(400).json({ message: "Old password is incorrect" });
+    }
     req.body.phoneNumber = user.phoneNumber;
     changePassword(req, res);
   } catch (err) {
@@ -260,27 +264,27 @@ export const deletefromCart = async (req, res) => {
 // Forget password
 
 export const forgotPassword = async (req, res) => {
-  const user = await User.findOne({ phoneNumber: req.body.phoneNumber });
-  const phoneNumber = req.body.phoneNumber;
-  const client = twilio(accountSid, authToken);
-  const Otp = user.getResetPasswordOtp();
-  const userUpdate = await User.findOneAndUpdate(
-    { phoneNumber: req.body.phoneNumber },
-    { resetPasswordOtp: Otp },
-    { new: true, runValidators: true }
-  );
-  res.status(200).json({ user: userUpdate });
-
-  if (!user) {
-    res.status(404).json({ message: "User not found" }); // 404 Not Found
-    return;
-  }
-
   try {
+    const user = await User.findOne({ phoneNumber: req.body.phoneNumber });
+    const phoneNumber = req.body.phoneNumber;
+    const client = twilio(accountSid, authToken);
+    const Otp = user.getResetPasswordOtp();
+    const userUpdate = await User.findOneAndUpdate(
+      { phoneNumber: req.body.phoneNumber },
+      { resetPasswordOtp: Otp },
+      { new: true, runValidators: true }
+    );
+    res.status(200).json({ user: userUpdate });
+
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+
     console.log(Otp);
     client.messages
       .create({
-        body: ` ${Otp} This is your OTP for Farmhub password reset`,
+        body: `${Otp} This is your OTP for Farmhub password reset`,
         from: "+12708136198",
         to: `+91 ${phoneNumber}`,
       })
@@ -294,10 +298,13 @@ export const forgotPassword = async (req, res) => {
 };
 
 export const checkOtp = async (req, res) => {
-  const user = await User.findOne({ phoneNumber: req.body.phoneNumber });
-  if (req.body.otp !== user.resetPasswordOtp) {
-    return res.status(401).json({ message: "Invalid OTP" }); // 401 Unauthorized
+  try {
+    const user = await User.findOne({ phoneNumber: req.body.phoneNumber });
+    if (req.body.otp !== user.resetPasswordOtp) {
+      return res.status(401).json({ message: "Invalid OTP" });
+    }
+    res.status(200).json({ message: "Valid OTP" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
-  res.status(200).json({ message: "Valid OTP" });
-  // changePassword(req,res)
 };

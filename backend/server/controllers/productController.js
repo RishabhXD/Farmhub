@@ -2,8 +2,6 @@ import Product from "../models/productModel";
 import path from "path";
 import fs from "fs";
 
-// -------------------------------- Manage and view products --------------------------------
-
 const readImage = (files) => {
   let images = [];
   files.forEach((file) => {
@@ -123,8 +121,6 @@ export const getTopProducts = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
-
-// -------------------------------- Reviews --------------------------------
 
 export const addReview = async (req, res) => {
   try {

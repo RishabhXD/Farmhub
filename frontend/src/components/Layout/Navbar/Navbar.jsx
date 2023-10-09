@@ -28,8 +28,36 @@ const NavButton = styled(Button)(({ theme }) => ({
     fontWeight: 'bold',
     minWidth: 0,
     color: theme.palette.tertiary.main,
-    display: 'block'
+    display: 'block',
+    position: 'relative',
+    '&:hover::after': {
+        content: "''",
+        position: 'absolute',
+        bottom: '4px',
+        left: '50%',
+        transform: 'translateX(-50%)', 
+        backgroundColor: theme.palette.tertiary.main,
+        width: '0', 
+        height: '2px',
+        animation: 'hoverLine 550ms forwards',
+    },
+    '@keyframes hoverLine': {
+        '0%': {
+            width: '0', 
+            left: '50%',
+            transform: 'translateX(-50%)',
+        },
+        '100%': {
+            width: '100%',
+            left: '0', 
+            transform: 'translateX(0)', 
+    },
+},
 }));
+
+const scrollToTop = () => {
+    window.scrollTo(0, 0);
+}
 
 const shopPages = [
     {
@@ -240,15 +268,16 @@ function NavBar({
                     <Box
                         sx={{
                             flex: '2 1 0',
+                            gap: '2px',
                             width: 0,
                             display: { xs: 'none', md: 'flex' },
                             justifyContent: 'center'
                         }}>
-                        <NavButton component={Link} to='/'>
+                        <NavButton component={Link} onClick={scrollToTop} to='/'>
                             Home
                         </NavButton>
 
-                        <NavButton component={Link} to='/crops'>
+                        <NavButton component={Link} onClick={scrollToTop} to='/crops'>
                             Crops
                         </NavButton>
 
@@ -275,7 +304,7 @@ function NavBar({
                             <MenuItem component={Link} to='/doseCalculator' onClick={handleCloseServiceMenu}>Dose Caluculator</MenuItem>
                         </Menu>
 
-                        <NavButton component={Link} to='/shop'>
+                        <NavButton component={Link} onClick={scrollToTop} to='/shop'>
                             Shop
                         </NavButton>
 
